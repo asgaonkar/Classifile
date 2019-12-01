@@ -5,8 +5,17 @@ import sys
 import time
 import fnmatch
 import logging
+import argparse
+import datetime
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler, LoggingFileSystemEventHandler, FileSystemEventHandler
+
+parser = argparse.ArgumentParser(description='Classifile:')
+requiredNamed = parser.add_argument_group('required named arguments')
+requiredNamed.add_argument("-s", "--src", required=True, type=str, help="Sorce Folder (path)")
+requiredNamed.add_argument("-d", "--dst", required=True, type=str, help="Destination Folder (path)")
+requiredNamed.add_argument("-l", "--log", required=True, type=str, help="Log Folder (path)")
+args = parser.parse_args()
 
 
 class SourceHandler(FileSystemEventHandler):
@@ -23,15 +32,42 @@ class SourceHandler(FileSystemEventHandler):
                 #logger.debug("Removed \'{}\'".format(file_path)) #Fix the logger
                 try:
                     fullfile, file_extension = os.path.splitext(file_path)
-                except Exception as e:
+                except:
                     file_extension = 'noname'
 
+                currentMonth = datetime.datetime.now().strftime("%B")
+                currentYear = datetime.datetime.now().year
+
+
                 dst_path_folder = os.path.join(dst_folder,extensions_folders[file_extension])
-                print("Move to {}".format(dst_path_folder))
+                
 
                 #Create chain directory until the desired folder
+                dst_path_folder = os.path.join(dst_path_folder,str(currentYear))
+                dst_path_folder = os.path.join(dst_path_folder,currentMonth)
+
+                print("Move to {}".format(dst_path_folder))
+
                 os.makedirs(dst_path_folder, 0o666, exist_ok=True)
                 dst_path = os.path.join(dst_path_folder,filename)
+                file_exists = os.path.isfile(dst_path)
+
+                #Check if same filename exists
+                while file_exists:
+                    #Log the duplicacy
+                    
+                    
+                    #Rename the file
+                    print("Trial: {}".format(dst_path))
+                    print("Filename: {}".format(filename))
+                    filename_split = filename.split(".")
+                    print("Name: {}".format(filename_split[len(filename_split)-2]))
+                    filename = filename_split[len(filename_split)-2] + "_copy"
+                    filename = filename + file_extension
+                    print("Changed: {}".format(filename))
+                    dst_path = os.path.join(dst_path_folder,filename)
+                    file_exists = os.path.isfile(dst_path)
+
 
                 #Move the file and Log it
                 os.rename(file_path,dst_path)
@@ -52,7 +88,6 @@ class ChangedHandler(FileSystemEventHandler):
     def on_modified(self, event):
         print("Hi")
         return
-
 
 
 #For Root Logger
@@ -210,10 +245,9 @@ extensions_folders = {
 
 curr_dir = os.getcwd()
 
-
-src_folder = os.sys.argv[1]
-dst_folder = os.sys.argv[2]
-log_folder = os.sys.argv[3]
+src_folder = args.src
+dst_folder = args.dst
+log_folder = args.log
 
 if(not(os.path.isdir(src_folder))):
     try:

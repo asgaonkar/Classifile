@@ -1,3 +1,4 @@
+#To kill recurring tasks that wasnt properly closed. Use at personal risk.
 #ps aux | grep -ie "python3 Class" | grep "Tl" | awk '{print $2}' | xargs kill -9
 
 import os
@@ -28,8 +29,9 @@ class SourceHandler(FileSystemEventHandler):
             #Move all the files to their respective folders
             for filename in files:
                 file_path = os.path.join(root, filename)
-                print("File: {}".format(file_path))
-                #logger.debug("Removed \'{}\'".format(file_path)) #Fix the logger
+            
+                #logger.debug("Removed \'{}\'".format(file_path)) #Fix the logger (v2.0)
+
                 try:
                     fullfile, file_extension = os.path.splitext(file_path)
                 except:
@@ -45,40 +47,36 @@ class SourceHandler(FileSystemEventHandler):
                 #Create chain directory until the desired folder
                 dst_path_folder = os.path.join(dst_path_folder,str(currentYear))
                 dst_path_folder = os.path.join(dst_path_folder,currentMonth)
-
-                print("Move to {}".format(dst_path_folder))
-
                 os.makedirs(dst_path_folder, 0o666, exist_ok=True)
-                dst_path = os.path.join(dst_path_folder,filename)
-                file_exists = os.path.isfile(dst_path)
+                dst_path = os.path.join(dst_path_folder,filename)                        
 
                 #Check if same filename exists
+                file_exists = os.path.isfile(dst_path)
                 while file_exists:
-                    #Log the duplicacy
+                    #Log the duplicacy (v2.0)
                     
                     
-                    #Rename the file
-                    print("Trial: {}".format(dst_path))
-                    print("Filename: {}".format(filename))
+                    #Rename the file by appending _copy
                     filename_split = filename.split(".")
-                    print("Name: {}".format(filename_split[len(filename_split)-2]))
                     filename = filename_split[len(filename_split)-2] + "_copy"
                     filename = filename + file_extension
-                    print("Changed: {}".format(filename))
                     dst_path = os.path.join(dst_path_folder,filename)
                     file_exists = os.path.isfile(dst_path)
 
 
-                #Move the file and Log it
+                #Log the move (v2.0)
+
+                #Move the file
                 os.rename(file_path,dst_path)
 
 
             #Delete all empty folders
             for dir in dirs:
                 dir_path = os.path.join(root, dir)
-                print("Folder: {}".format(dir_path))
 
-                #Delete the folder and Log it
+                #Log it for Deletion (v2.0)
+
+                #Delete the folder
                 os.rmdir(dir_path)
         return
 
@@ -86,7 +84,9 @@ class SourceHandler(FileSystemEventHandler):
 class ChangedHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
-        print("Hi")
+        #Destination Change Handler (v2.0)
+
+
         return
 
 
@@ -235,7 +235,6 @@ extensions_folders = {
     '.dmp' : "Text/Other/System",
     '.drv' : "Text/Other/System",
     '.icns' : "Text/Other/System",
-    '.ico' : "Text/Other/System",
     '.ini' : "Text/Other/System",
     '.lnk' : "Text/Other/System",
     '.msi' : "Text/Other/System",
@@ -243,12 +242,15 @@ extensions_folders = {
     '.tmp' : "Text/Other/System",
 }
 
+#Get current working directory
 curr_dir = os.getcwd()
 
+#Parse corresponding command line inputs
 src_folder = args.src
 dst_folder = args.dst
 log_folder = args.log
 
+#Create folders if they do not exist
 if(not(os.path.isdir(src_folder))):
     try:
         os.mkdir(src_folder,0o666)
@@ -267,6 +269,8 @@ if(not(os.path.isdir(log_folder))):
     except FileExistsError:
         pass
 
+
+#Create Source Looger - (v2.0)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 format_str = '%(asctime)s : %(created)f : %(funcName)s : %(message)s'
@@ -277,26 +281,33 @@ file_handler = logging.FileHandler(source_log_file)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
+#Create Destination Looger - (v2.0)
 changed_logger = logging.getLogger(__name__)
 changed_logger.setLevel(logging.DEBUG)
 changed_log_file = log_folder + '/Category.log'
 changed_file_handler = logging.FileHandler(changed_log_file)
 
+#Create Source Observer
 observer = Observer()
 event = SourceHandler()
 observer.schedule(event,src_folder,recursive=True)
 observer.start()
 
+#Create Destination Observer (v2.0)
 changed_observer = Observer()
 changed_event = ChangedHandler()
 changed_observer.schedule(changed_event,dst_folder,recursive=True)
 changed_observer.start()
 
+#Start watching
 try:
     while True:
         time.sleep(0.1)
 except KeyboardInterrupt:
+    #Stop watching
     observer.stop()
     changed_observer.stop()
+
+#Join the observer threads
 observer.join()
 changed_observer.join()

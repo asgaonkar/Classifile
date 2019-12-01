@@ -6,7 +6,7 @@ Categorically organise files according to date &amp and file type;
 
 To make life easier and organised, it is highly imperative that we have our work placed structured.
 
-# Version
+## Version
 
 > Classifile-1.0
 
@@ -24,6 +24,11 @@ LOG: Contains log files
 
 Output: DST directory will be hierarchically structured based on Year, Month and file type.
 
+
+> Mandatory switches: -s/--src, -d/--dst, -l/--log
+
+> Optional Switches: -h
+
 ## Imports
 
 > os, sys, time, fnmatch, logging, argparse, datetime, watchdog.observers, watchdog.events
@@ -37,14 +42,11 @@ Given below is an example using which it is easy to understand the working of Cl
 python3 Classifile.py -s Peronal/ -d Organised/ -l ../Logs/
 ```
 
-> Mandatory switches: -s/--src, -d/--dst, -l/--log
-> Optional Switches: -h
-
 
 ## Vulnerability Checks
  > Vulnerability checks yet to be performed
 
-# Coming Soon (v2.0)
+## Coming Soon (v2.0)
 
 Features to be included
 
@@ -55,6 +57,6 @@ Destination Log
 Optional sort using file creation/modified date
 ```
 
-# Author
+## Author
 
 * **Atit S Gaonkar** - *Initial work* - [Github](https://github.com/asgaonkar) - [LinkedIN](https://www.linkedin.com/in/atit-gaonkar/)
